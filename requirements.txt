@@ -1,0 +1,6 @@
+streamlit
+psycopg[binary]
+pandas
+plotly
+sqlglot
+ollama
