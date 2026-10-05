@@ -1,4 +1,4 @@
-﻿# Chat with Your Database: Text-to-SQL Agent
+# Chat with Your Database: Text-to-SQL Agent
 
 [![CI](https://github.com/shwetash77/text-to-sql-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/shwetash77/text-to-sql-agent/actions/workflows/ci.yml)
 
@@ -80,6 +80,13 @@ curl -X POST http://localhost:8000/ask -H "Content-Type: application/json" -d "{
 ```
 The response contains `answer`, `sql` and `rows`. `GET /health` returns `{"status": "ok"}`.
 
+## Docker
+```powershell
+docker build -t text-to-sql-api .
+docker run -p 8001:8000 -e DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@host.docker.internal:5432/shop" -e OLLAMA_HOST="http://host.docker.internal:11434" text-to-sql-api
+```
+Then open `http://localhost:8001/docs`. PostgreSQL and Ollama run on the host machine, so this is a local container, not a cloud deployment.
+
 ## Project structure
 | File | Purpose |
 |---|---|
@@ -91,6 +98,7 @@ The response contains `answer`, `sql` and `rows`. `GET /health` returns `{"statu
 | `seed.py`, `schema.sql` | Synthetic shop database |
 | `eval.py` | Accuracy and safety evaluation |
 | `test_guardrails.py` | Guardrail unit tests |
+| `Dockerfile` | Container image for the API |
 
 ## Limitations
 - The data is synthetic (a fake online shop), not real business data.
@@ -98,4 +106,4 @@ The response contains `answer`, `sql` and `rows`. `GET /health` returns `{"statu
 - Only read-only queries on four tables are supported.
 
 ## Tech stack
-Python, FastAPI, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg
+Python, FastAPI, Docker, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg, GitHub Actions
