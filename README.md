@@ -99,3 +99,10 @@ The response contains `answer`, `sql` and `rows`. `GET /health` returns `{"statu
 
 ## Tech stack
 Python, FastAPI, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg
+
+## Docker
+```powershell
+docker build -t text-to-sql-api .
+docker run -p 8001:8000 -e DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@host.docker.internal:5432/shop" -e OLLAMA_HOST="http://host.docker.internal:11434" text-to-sql-api
+```
+Then open `http://localhost:8001/docs`. PostgreSQL and Ollama run on the host machine, so this is a local container, not a cloud deployment.
