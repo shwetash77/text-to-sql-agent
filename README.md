@@ -1,4 +1,6 @@
-# Chat with Your Database: Text-to-SQL Agent
+﻿# Chat with Your Database: Text-to-SQL Agent
+
+[![CI](https://github.com/shwetash77/text-to-sql-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/shwetash77/text-to-sql-agent/actions/workflows/ci.yml)
 
 Ask questions about a database in plain English. An LLM agent writes the PostgreSQL query, runs it **safely (read-only)**, and shows the answer as a table and a chart. Everything runs locally with Ollama, so no data leaves your machine and no API key is needed.
 
@@ -24,7 +26,7 @@ flowchart LR
   A --> API[FastAPI: /ask endpoint]
 ```
 
-The model uses **function calling**: it calls a `run_sql` tool, gets back rows or an error message, and retries if the SQL was wrong (up to 4 steps).
+The model uses **function calling**: it calls a `run_sql` tool, gets back rows or an error message, and retries if the SQL was wrong (up to 5 steps).
 
 ## Safety (defense in depth)
 1. **Pre-filter:** requests to modify data are refused before they reach the model.
