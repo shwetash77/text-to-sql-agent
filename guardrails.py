@@ -1,4 +1,5 @@
 """Layer 1 of safety: validate SQL BEFORE it touches the database."""
+
 import sqlglot
 from sqlglot import exp
 

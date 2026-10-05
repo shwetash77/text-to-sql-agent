@@ -4,6 +4,7 @@ Ask questions about a database in plain English. An LLM agent writes the Postgre
 
 ![Monthly revenue](screenshots/monthly-revenue.png)
 ![Destructive request blocked](screenshots/blocked-delete.png)
+![FastAPI demo](api_demo.png)
 
 ## What it can do
 - "Top 5 products by revenue in March 2025"
@@ -20,6 +21,7 @@ flowchart LR
   G -->|validated SELECT| D[(PostgreSQL: read-only, 5s timeout)]
   D -->|rows or error| A
   A --> UI[Streamlit: summary, table, chart]
+  A --> API[FastAPI: /ask endpoint]
 ```
 
 The model uses **function calling**: it calls a `run_sql` tool, gets back rows or an error message, and retries if the SQL was wrong (up to 4 steps).
@@ -65,11 +67,23 @@ python -u eval.py
 ```
 On Mac/Linux, use `source venv/bin/activate` and `export DATABASE_URL=...`.
 
+## REST API
+The agent is also exposed as a FastAPI service. Set `DATABASE_URL` first, then start it:
+```powershell
+uvicorn api:app --reload
+```
+Open `http://localhost:8000/docs` for the interactive Swagger page, or send a request:
+```powershell
+curl -X POST http://localhost:8000/ask -H "Content-Type: application/json" -d "{\"question\": \"Which city has the most customers?\"}"
+```
+The response contains `answer`, `sql` and `rows`. `GET /health` returns `{"status": "ok"}`.
+
 ## Project structure
 | File | Purpose |
 |---|---|
 | `app.py` | Streamlit chat UI with automatic charts |
 | `agent.py` | LLM tool-calling loop |
+| `api.py` | FastAPI REST endpoint (`/ask`, `/health`) |
 | `guardrails.py` | SQL validation (sqlglot) |
 | `db.py` | Read-only query runner and schema reader |
 | `seed.py`, `schema.sql` | Synthetic shop database |
@@ -82,4 +96,4 @@ On Mac/Linux, use `source venv/bin/activate` and `export DATABASE_URL=...`.
 - Only read-only queries on four tables are supported.
 
 ## Tech stack
-Python, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg
+Python, FastAPI, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg
