@@ -1,4 +1,5 @@
 """Layer 2 of safety: read-only transaction + timeout, even if validation is bypassed."""
+
 import os
 from decimal import Decimal
 import pandas as pd

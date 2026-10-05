@@ -1,4 +1,5 @@
 """The agent loop: LLM decides when to call run_sql, sees results or errors, and retries."""
+
 import json
 import os
 import re
@@ -20,24 +21,24 @@ SYSTEM = """You are a careful data analyst for a PostgreSQL database.
 - After you get results, reply with a short plain-English summary.
   If a query returns 0 rows, say so directly. For questions like "which X never...",
   say "Every X has ..." instead of using a double negative."""
-TOOLS = [{
-    "type": "function",
-    "function": {
-        "name": "run_sql",
-        "description": "Run a read-only PostgreSQL SELECT query and return the rows.",
-        "parameters": {
-            "type": "object",
-            "properties": {"query": {"type": "string", "description": "A single SELECT statement"}},
-            "required": ["query"],
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "run_sql",
+            "description": "Run a read-only PostgreSQL SELECT query and return the rows.",
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string", "description": "A single SELECT statement"}},
+                "required": ["query"],
+            },
         },
-    },
-}]
+    }
+]
 
 # Refuse write requests before the model sees them. The SQL guardrail and the
 # read-only transaction are still the real protection; this just gives a clean reply.
-WRITE_INTENT = re.compile(
-    r"\b(delete|drop|truncate|erase|wipe|insert|alter|update)\b", re.IGNORECASE
-)
+WRITE_INTENT = re.compile(r"\b(delete|drop|truncate|erase|wipe|insert|alter|update)\b", re.IGNORECASE)
 
 
 def _text_tool_call(content):
@@ -68,9 +69,15 @@ def _execute(sql):
         safe_sql = validate(sql)
         df = run_query(safe_sql)
         if df.empty:
-            return ("The query ran successfully and returned 0 rows. This is a valid final answer, "
+            return (
+                (
+                    "The query ran successfully and returned 0 rows. This is a valid final answer, "
                     "not an error. Do not run another query. Tell the user plainly, "
-                    "for example 'Every product has been ordered at least once.'"), safe_sql, df
+                    "for example 'Every product has been ordered at least once.'"
+                ),
+                safe_sql,
+                df,
+            )
         return df.head(20).to_json(orient="records", date_format="iso"), safe_sql, df
     except UnsafeSQL as e:
         return f"BLOCKED: {e}", None, None
@@ -80,8 +87,14 @@ def _execute(sql):
 
 def ask(question: str, max_steps: int = 5):
     if WRITE_INTENT.search(question):
-        return ("I only have read-only access, so I can't change or delete data. "
-                "I can answer questions about it, though."), None, None
+        return (
+            (
+                "I only have read-only access, so I can't change or delete data. "
+                "I can answer questions about it, though."
+            ),
+            None,
+            None,
+        )
 
     messages = [
         {"role": "system", "content": SYSTEM + "\n\nSCHEMA:\n" + get_schema()},
@@ -113,9 +126,13 @@ def ask(question: str, max_steps: int = 5):
 
         if last_sql is None and not nudged:
             nudged = True
-            messages.append({"role": "user", "content":
-                "Use the run_sql tool to answer this. If the request asks to change data, "
-                "reply that you only have read-only access."})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": "Use the run_sql tool to answer this. If the request asks to change data, "
+                    "reply that you only have read-only access.",
+                }
+            )
             continue
 
         final = re.sub(r'\{\s*"name"\s*:\s*"run_sql".*\}', "", msg.content or "", flags=re.DOTALL).strip()
