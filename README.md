@@ -107,3 +107,44 @@ Then open `http://localhost:8001/docs`. PostgreSQL and Ollama run on the host ma
 
 ## Tech stack
 Python, FastAPI, Docker, PostgreSQL, Ollama (llama3.1), sqlglot, Streamlit, Plotly, pandas, psycopg, GitHub Actions
+## React + TypeScript web app and Node.js gateway
+
+The original Streamlit UI still works. A second, production-style interface sits on top of the FastAPI service:
+
+```mermaid
+flowchart LR
+  B[React + TypeScript UI<br/>web/] -->|/api/*| N[Express + TypeScript gateway<br/>server/]
+  N -->|POST /ask| F[FastAPI<br/>api.py]
+  F --> A[Agent + guardrails + PostgreSQL]
+```
+
+**`web/`** (React 19, TypeScript, Vite, Recharts): chat interface with example prompts, a summary, an automatic bar or line chart, a results table, a collapsible view of the generated SQL, a history panel, and error states. Responsive (history moves below the chat on phones), keyboard accessible, and supports light and dark mode.
+
+**`server/`** (Node.js, Express, TypeScript): validates input with zod (1-500 characters), rate-limits `/api/ask` (20 requests/min per IP), sets security headers (helmet) and CORS, keeps the last 50 questions in memory for `/api/history`, and maps upstream failures to clear status codes (400 invalid, 429 rate limited, 502 API error, 503 API unreachable, 504 timeout).
+
+### Run it
+
+```bash
+# 1. FastAPI service (see "Run it yourself" above), on :8000
+uvicorn api:app --reload
+
+# 2. Gateway, on :3001
+cd server && npm install && npm run dev
+
+# 3. Web app, on :5173
+cd web && npm install && npm run dev
+```
+
+No Ollama or PostgreSQL handy? Use the mock API (same contract as `api.py`) instead of step 1:
+`cd server && npm run mock-api`
+
+Environment variables for the gateway: `API_URL` (default `http://localhost:8000`), `PORT` (default `3001`), `CORS_ORIGIN` (default `http://localhost:5173`).
+
+### Tests
+
+```bash
+cd server && npm test   # 9 tests: proxying, validation, error mapping, rate limit, history
+cd web && npm test      # 8 tests: chart inference, formatting, chat flow, error state
+```
+
+Both run in CI (`.github/workflows/web-ci.yml`).
