@@ -1,0 +1,68 @@
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --text: #1b1f27; --muted: #667085; --border: #e3e6eb;
+  --accent: #3b5bdb; --accent-text: #ffffff; --user: #e8edff; --error: #b42318; --error-bg: #fef3f2;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12141a; --surface: #1b1e27; --text: #e8eaf0; --muted: #9aa3b5; --border: #2d3240;
+    --accent: #7c93ff; --accent-text: #0e1220; --user: #252c4a; --error: #ffb4ab; --error-bg: #3a1f1d;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+h1 { font-size: 1.35rem; margin: 0 0 .25rem; }
+h2 { font-size: .95rem; margin: 0; }
+.muted { color: var(--muted); } .small { font-size: .8rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 280px; grid-template-rows: auto 1fr auto;
+  grid-template-areas: "top top" "chat history" "composer history";
+  gap: 0 16px; max-width: 1100px; margin: 0 auto; padding: 16px; min-height: 100dvh;
+}
+.top { grid-area: top; padding-bottom: 12px; }
+.chat { grid-area: chat; display: flex; flex-direction: column; gap: 16px; padding-bottom: 12px; min-width: 0; }
+.history { grid-area: history; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; align-self: start; max-height: calc(100dvh - 120px); overflow: auto; position: sticky; top: 16px; }
+.composer { grid-area: composer; display: flex; gap: 8px; position: sticky; bottom: 0; padding: 12px 0 4px; background: linear-gradient(transparent, var(--bg) 30%); }
+
+.composer input { flex: 1; min-width: 0; padding: 12px 14px; font-size: 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.composer input:focus-visible, button:focus-visible, summary:focus-visible, .table-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; cursor: pointer; }
+.composer button { padding: 0 20px; border-radius: 10px; border: 0; background: var(--accent); color: var(--accent-text); font-weight: 600; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+
+.empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+.chip:hover:not(:disabled) { border-color: var(--accent); }
+
+.turn { display: flex; flex-direction: column; gap: 8px; }
+.bubble { margin: 0; padding: 10px 14px; border-radius: 14px; max-width: 100%; overflow-wrap: anywhere; }
+.bubble.user { background: var(--user); align-self: flex-end; max-width: 85%; }
+.bubble.bot { background: var(--surface); border: 1px solid var(--border); }
+.bubble.bot > p { margin: 0 0 8px; }
+.bubble.error { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+
+.table-wrap { overflow: auto; max-height: 280px; border: 1px solid var(--border); border-radius: 8px; margin-top: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { padding: 6px 10px; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--border); }
+th { position: sticky; top: 0; background: var(--surface); }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.chart { margin-top: 8px; }
+details { margin-top: 8px; } summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+pre { margin: 8px 0 0; padding: 10px; background: var(--bg); border-radius: 8px; overflow: auto; font-size: .82rem; }
+
+.history-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.history ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.history li button { width: 100%; text-align: left; padding: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text); display: flex; flex-direction: column; gap: 2px; }
+.history li button:hover { background: var(--bg); }
+.link { background: none; border: 0; color: var(--accent); padding: 0; }
+
+/* Tablet / phone: history moves below the chat, composer stays reachable */
+@media (max-width: 800px) {
+  .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "chat" "composer" "history"; padding: 12px; }
+  .history { position: static; max-height: none; margin-top: 12px; }
+  .bubble.user { max-width: 95%; }
+  h1 { font-size: 1.15rem; }
+}
